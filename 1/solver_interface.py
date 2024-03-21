@@ -30,22 +30,25 @@ class SolverInterface:
             b_var = self.target_combination_vars[f'B_{combination_id}']
             a_vars_sum = sum(self.variables[f'A_{param}_{value}'] for param, value in combination.parameters.items())
             # Constraint: If all A-variables for a combination are 1, then the B-variable must be 0
-            self.solver.Add(a_vars_sum - len(combination.parameters) * b_var <= len(combination.parameters) - 1)
             # Constraint: For each A-variable linked to a B-variable, if the A-variable is 1, then B-variable must be 1
             for param, value in combination.parameters.items():
                 a_var = self.variables[f'A_{param}_{value}']
-                self.solver.Add(a_var - b_var <= 0)
+                self.solver.Add(a_var - b_var >= 0)
+            
+            self.solver.Add(-1 * a_vars_sum + b_var >= -len(combination.parameters) + 1)
+
 
         # Add Type III Constraints: Original constraints from the SUT model
         for constraint in original_constraints:
+            # print('SUT-constraint:',constraint)
             # For each forbidden combination, encode it into a PB constraint
             self.solver.Add(sum(self.variables[f'A_{param}_{value}'] for param, value in constraint) <= len(constraint) - 1)
 
-        # Add constraints to exclude existing test cases
-        for test_case in existing_test_cases:
-            for param, value in test_case.items():
-                # Exclude the test case by forcing the corresponding A-variable to not take the value in this test case
-                self.solver.Add(self.variables[f'A_{param}_{value}'] == 0)
+        # # Add constraints to exclude existing test cases
+        # for test_case in existing_test_cases:
+        #     for param, value in test_case.items():
+        #         # Exclude the test case by forcing the corresponding A-variable to not take the value in this test case
+        #         self.solver.Add(self.variables[f'A_{param}_{value}'] == 0)
 
         # Define the objective function: Minimize the sum of B-variables (to maximize coverage)
         objective = self.solver.Objective()
@@ -63,7 +66,6 @@ class SolverInterface:
     def solve(self):
         """Solve the optimization problem and return the results."""
         result_status = self.solver.Solve()
-        
         # Check if the solution is optimal. If not, handle appropriately.
         if result_status == pywraplp.Solver.OPTIMAL:
             solution = {}
@@ -73,7 +75,9 @@ class SolverInterface:
                     # Assuming var_name is like 'A_p0_1', where 'p0' is the parameter and '1' is the value
                     param, value = var_name.split('_')[1:]
                     solution[param] = int(value)
+            print("Optimal solution is found:",solution)
             return solution
+            
         elif result_status == pywraplp.Solver.INFEASIBLE:
             print("No solution found.")
         elif result_status == pywraplp.Solver.UNBOUNDED:

@@ -18,9 +18,10 @@ class TestGenerator:
         while uncovered_combinations:
             # Prepare the solver with the current uncovered combinations and existing test cases
             self.solver_interface.setup_problem(self.parameters, uncovered_combinations, self.original_constraints, self.test_suite.test_cases)
-            
+            # print('', self.test_suite.test_cases)
             # Solve the optimization problem to find a new test case
             new_test_case = self.solver_interface.solve()
+            # print('new_test_case:', new_test_case)
 
             # If a new test case is generated, add it to the test suite and update covered combinations
             if new_test_case:

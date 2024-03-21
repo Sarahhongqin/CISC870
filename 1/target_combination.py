@@ -1,8 +1,9 @@
-
 def is_combination_valid(combination, constraints):
     # Check if a given combination violates any constraint
+    # print('combination:', combination)
     for constraint in constraints:
-        if all(combination[param] == value for param, value in constraint):
+        # print('constraint:', constraint)
+        if all(combination.get(param) == value for param, value in constraint):
             return False
     return True
 
@@ -10,7 +11,7 @@ def generate_target_combinations(parameters, constraints):
     from itertools import combinations
 
     # Generate all pairs of parameters for coverage strength t = 2
-    parameter_pairs = combinations(sorted(parameters), 2)
+    parameter_pairs = list(combinations(sorted(parameters), 2))
 
     # Generate all valid combinations for each pair
     target_combinations = []
