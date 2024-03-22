@@ -31,6 +31,13 @@ def main(input_text):
 
 # Run the main function if this script is executed
 if __name__ == "__main__":
+    with open("apache-short.txt", "r") as file:
+        for line in file:
+            if line.startswith('Name'):
+                _, name = line.split(':')
+                print("System:", name.strip())
+                break
+
     with open("apache.txt", "r") as file:
         input_text = file.read()
     main(input_text)
